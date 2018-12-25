@@ -1,1 +1,6 @@
-export { default } from "./Textarea";
+import Textarea, { Autocomplete } from "./Textarea";
+
+export {
+  Autocomplete,
+  Textarea as default,
+};

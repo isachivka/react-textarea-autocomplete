@@ -196,7 +196,8 @@ class ReactTextareaAutocomplete extends React.Component<
     value: null,
     minChar: 1,
     boundariesElement: "body",
-    scrollToItem: true
+    scrollToItem: true,
+    autoCompleteComponent: Autocomplete,
   };
 
   constructor(props: TextareaProps) {
@@ -596,7 +597,8 @@ class ReactTextareaAutocomplete extends React.Component<
       "closeOnClickOutside",
       "dropdownStyle",
       "dropdownClassName",
-      "movePopupAsYouType"
+      "movePopupAsYouType",
+      "autoCompleteComponent",
     ];
 
     // eslint-disable-next-line
@@ -843,6 +845,7 @@ class ReactTextareaAutocomplete extends React.Component<
   render() {
     const {
       loadingComponent: Loader,
+      autoCompleteComponent: AutocompleteComponent,
       style,
       className,
       listStyle,
@@ -856,7 +859,7 @@ class ReactTextareaAutocomplete extends React.Component<
       containerStyle,
       containerClassName,
       loaderStyle,
-      loaderClassName
+      loaderClassName,
     } = this.props;
     const {
       left,
@@ -896,7 +899,7 @@ class ReactTextareaAutocomplete extends React.Component<
           style={style}
         />
         {(dataLoading || suggestionData) && currentTrigger && (
-          <Autocomplete
+          <AutocompleteComponent
             innerRef={ref => {
               // $FlowFixMe
               this.dropdownRef = ref;
@@ -907,6 +910,7 @@ class ReactTextareaAutocomplete extends React.Component<
             className={dropdownClassName}
             movePopupAsYouType={movePopupAsYouType}
             boundariesElement={boundariesElement}
+            textareaRef={this.textareaRef}
           >
             {suggestionData && component && textToReplace && (
               <List
@@ -933,7 +937,7 @@ class ReactTextareaAutocomplete extends React.Component<
                 <Loader data={suggestionData} />
               </div>
             )}
-          </Autocomplete>
+          </AutocompleteComponent>
         )}
       </div>
     );
@@ -1005,6 +1009,7 @@ const triggerPropsCheck = ({ trigger }: { trigger: triggerType }) => {
 ReactTextareaAutocomplete.propTypes = {
   value: PropTypes.string,
   loadingComponent: PropTypes.func.isRequired,
+  autoCompleteComponent: PropTypes.func,
   minChar: PropTypes.number,
   onChange: PropTypes.func,
   onSelect: PropTypes.func,
@@ -1029,3 +1034,4 @@ ReactTextareaAutocomplete.propTypes = {
 };
 
 export default ReactTextareaAutocomplete;
+export { Autocomplete };
