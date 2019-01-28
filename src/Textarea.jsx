@@ -781,12 +781,17 @@ class ReactTextareaAutocomplete extends React.Component<
 
   _onClickAndBlurHandler = (e: SyntheticFocusEvent<*>) => {
     const { closeOnClickOutside, onBlur } = this.props;
+    const isEdge = navigator.userAgent.indexOf('Edge') !== -1;
+    const isInternetExplorer = navigator.userAgent.indexOf('Trident') !== -1;
 
     // If this is a click: e.target is the textarea, and e.relatedTarget is the thing
     // that was actually clicked. If we clicked inside the autoselect dropdown, then
     // that's not a blur, from the autoselect's point of view, so then do nothing.
     // document.activeElement - due to ie strange blur event on dropdown from textarea
-    const el = e.relatedTarget || document.activeElement;
+    const el = (isEdge || isInternetExplorer)
+      ? document.activeElement
+      : e.relatedTarget;
+
     if (
       this.dropdownRef &&
       el instanceof Node &&
