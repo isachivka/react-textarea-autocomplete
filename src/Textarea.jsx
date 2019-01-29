@@ -789,7 +789,7 @@ class ReactTextareaAutocomplete extends React.Component<
     // that's not a blur, from the autoselect's point of view, so then do nothing.
     // document.activeElement - due to ie strange blur event on dropdown from textarea
     const el = (isEdge || isInternetExplorer)
-      ? document.activeElement
+      ? e.relatedTarget || document.activeElement
       : e.relatedTarget;
 
     if (
