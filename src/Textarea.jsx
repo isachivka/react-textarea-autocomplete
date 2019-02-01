@@ -48,7 +48,8 @@ type AutocompleteProps = {
   boundariesElement: string | HTMLElement,
   top: ?number,
   left: ?number,
-  children: *
+  children: *,
+  renderer: ?() => React$Element<*>,
 };
 
 type AutocompleteState = {
@@ -150,8 +151,15 @@ class Autocomplete extends React.Component<
     });
   };
 
+  storeRef = ref => {
+    // $FlowFixMe
+    this.ref = ref;
+    // $FlowFixMe
+    this.props.innerRef(ref);
+  }
+
   render() {
-    const { style, className, innerRef, children, top, left } = this.props;
+    const { style, className, children, top, left, ...restProps } = this.props;
     const { xConfig, yConfig, dropdownHeight, dropdownWidth } = this.state;
 
     const positionStyle = {
@@ -169,14 +177,22 @@ class Autocomplete extends React.Component<
         : 0
     };
 
+    if (this.props.renderer) {
+      return this.props.renderer({
+        ...restProps,
+        children,
+        className,
+        ref: this.storeRef,
+        style: {
+          ...style,
+          ...positionStyle,
+        },
+      })
+    }
+
     return (
       <div
-        ref={ref => {
-          // $FlowFixMe
-          this.ref = ref;
-          // $FlowFixMe
-          innerRef(ref);
-        }}
+        ref={this.storeRef}
         className={`rta__autocomplete ${xConfig} ${yConfig} ${className || ""}`}
         style={{ ...style, ...positionStyle }}
       >
@@ -197,7 +213,9 @@ class ReactTextareaAutocomplete extends React.Component<
     minChar: 1,
     boundariesElement: "body",
     scrollToItem: true,
-    autoCompleteComponent: Autocomplete,
+    autocompleteRenderer: null,
+    listRenderer: null,
+    itemRenderer: null,
   };
 
   constructor(props: TextareaProps) {
@@ -467,6 +485,7 @@ class ReactTextareaAutocomplete extends React.Component<
       return;
     }
 
+    const { itemRenderer } = this.props;
     const { dataProvider, component } = triggerSettings;
 
     if (typeof dataProvider !== "function") {
@@ -489,8 +508,8 @@ class ReactTextareaAutocomplete extends React.Component<
           throw new Error("Trigger provider has to provide an array!");
         }
 
-        if (typeof component !== "function") {
-          throw new Error("Component should be defined!");
+        if (typeof component !== "function" && typeof itemRenderer !== "function") {
+          throw new Error("Either component or itemRenderer should be defined!");
         }
 
         // throw away if we resolved old trigger
@@ -505,7 +524,7 @@ class ReactTextareaAutocomplete extends React.Component<
         this.setState({
           dataLoading: false,
           data,
-          component
+          component: component || itemRenderer,
         });
       })
       .catch(e => errorMessage(e.message));
@@ -598,7 +617,9 @@ class ReactTextareaAutocomplete extends React.Component<
       "dropdownStyle",
       "dropdownClassName",
       "movePopupAsYouType",
-      "autoCompleteComponent",
+      "autocompleteRenderer",
+      "listRenderer",
+      "itemRenderer"
     ];
 
     // eslint-disable-next-line
@@ -851,7 +872,9 @@ class ReactTextareaAutocomplete extends React.Component<
   render() {
     const {
       loadingComponent: Loader,
-      autoCompleteComponent: AutocompleteComponent,
+      autocompleteRenderer,
+      listRenderer,
+      itemRenderer,
       style,
       className,
       listStyle,
@@ -905,7 +928,7 @@ class ReactTextareaAutocomplete extends React.Component<
           style={style}
         />
         {(dataLoading || suggestionData) && currentTrigger && (
-          <AutocompleteComponent
+          <Autocomplete
             innerRef={ref => {
               // $FlowFixMe
               this.dropdownRef = ref;
@@ -917,6 +940,7 @@ class ReactTextareaAutocomplete extends React.Component<
             movePopupAsYouType={movePopupAsYouType}
             boundariesElement={boundariesElement}
             textareaRef={this.textareaRef}
+            renderer={autocompleteRenderer}
           >
             {suggestionData && component && textToReplace && (
               <List
@@ -929,6 +953,8 @@ class ReactTextareaAutocomplete extends React.Component<
                 getTextToReplace={textToReplace}
                 onSelect={this._onSelect}
                 dropdownScroll={this._dropdownScroll}
+                renderer={listRenderer}
+                itemRenderer={itemRenderer}
               />
             )}
             {dataLoading && (
@@ -943,7 +969,7 @@ class ReactTextareaAutocomplete extends React.Component<
                 <Loader data={suggestionData} />
               </div>
             )}
-          </AutocompleteComponent>
+          </Autocomplete>
         )}
       </div>
     );
@@ -1015,7 +1041,9 @@ const triggerPropsCheck = ({ trigger }: { trigger: triggerType }) => {
 ReactTextareaAutocomplete.propTypes = {
   value: PropTypes.string,
   loadingComponent: PropTypes.func.isRequired,
-  autoCompleteComponent: PropTypes.func,
+  autocompleteRenderer: PropTypes.func,
+  listRenderer: PropTypes.func,
+  itemRenderer: PropTypes.func,
   minChar: PropTypes.number,
   onChange: PropTypes.func,
   onSelect: PropTypes.func,

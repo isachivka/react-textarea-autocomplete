@@ -25,7 +25,8 @@ export type ItemProps = {
   className: ?string,
   onClickHandler: (SyntheticEvent<*>) => void,
   selected: boolean,
-  innerRef: HTMLDivElement => mixed
+  innerRef: HTMLDivElement => mixed,
+  renderer?: (*) => React$Element<*>,
 };
 
 export type ListProps = {
@@ -37,7 +38,9 @@ export type ListProps = {
   className: ?string,
   itemClassName: ?string,
   onSelect: textToReplaceType => void,
-  dropdownScroll: HTMLDivElement => void
+  dropdownScroll: HTMLDivElement => void,
+  renderer?: (*) => React$Element<*>,
+  itemRenderer?: (*) => React$Element<*>,
 };
 
 /**
@@ -65,7 +68,10 @@ export type triggerType = {
 export type TextareaProps = {
   trigger: triggerType,
   loadingComponent: React$StatelessFunctionalComponent<*>,
-  autoCompleteComponent?: React$Element<*>,
+  listComponent: React$StatelessFunctionalComponent<*>,
+  autocompleteRenderer?: (*) => React$Element<*>,
+  listRenderer?: (*) => React$Element<*>,
+  itemRenderer?: (*) => React$Element<*>,
   onChange: ?(SyntheticEvent<*> | Event) => void,
   onSelect: ?(SyntheticEvent<*> | Event) => void,
   onBlur: ?(SyntheticEvent<*> | Event) => void,
