@@ -11,6 +11,11 @@ export default class List extends React.Component<ListProps, ListState> {
     selectedItem: null
   };
 
+  static defaultProps = {
+    itemRenderer: null,
+    renderer: null,
+  };
+
   componentDidMount() {
     this.listeners.push(
       Listeners.add([KEY_CODES.DOWN, KEY_CODES.UP], this.scroll),
@@ -134,33 +139,50 @@ export default class List extends React.Component<ListProps, ListState> {
     return this.getId(selectedItem) === this.getId(item);
   };
 
-  render() {
+  renderItems() {
     const {
       values,
       component,
-      style,
       itemClassName,
-      className,
-      itemStyle
+      itemStyle,
+      itemRenderer,
     } = this.props;
+
+    return values.map(item => (
+      <Item
+        key={this.getId(item)}
+        innerRef={ref => {
+          this.itemsRef[this.getId(item)] = ref;
+        }}
+        selected={this.isSelected(item)}
+        item={item}
+        className={itemClassName}
+        style={itemStyle}
+        onClickHandler={this.onPressEnter}
+        onSelectHandler={this.selectItem}
+        component={component}
+        renderer={itemRenderer}
+      />
+    ));
+  }
+
+  render() {
+    const {
+      style,
+      className,
+    } = this.props;
+
+    if (this.props.renderer) {
+      return this.props.renderer({
+        style,
+        className,
+        children: this.renderItems(),
+      });
+    }
 
     return (
       <ul className={`rta__list ${className || ""}`} style={style}>
-        {values.map(item => (
-          <Item
-            key={this.getId(item)}
-            innerRef={ref => {
-              this.itemsRef[this.getId(item)] = ref;
-            }}
-            selected={this.isSelected(item)}
-            item={item}
-            className={itemClassName}
-            style={itemStyle}
-            onClickHandler={this.onPressEnter}
-            onSelectHandler={this.selectItem}
-            component={component}
-          />
-        ))}
+        {this.renderItems()}
       </ul>
     );
   }

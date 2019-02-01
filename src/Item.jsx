@@ -7,6 +7,10 @@ import type { ItemProps } from "./types";
 export default class Item extends React.Component<ItemProps, *> {
   clicked: boolean;
 
+  static defaultProps = {
+    renderer: null,
+  };
+
   shouldComponentUpdate(nextProps: ItemProps) {
     if (
       this.props.item !== nextProps.item ||
@@ -25,6 +29,22 @@ export default class Item extends React.Component<ItemProps, *> {
     onSelectHandler(item);
   };
 
+  onTouchStart = () => {
+    this.clicked = true;
+    this.selectItem();
+  };
+
+  onTouchEnd = (e) => {
+    e.preventDefault();
+    if (this.clicked) {
+      this.props.onClickHandler(e);
+    }
+  };
+
+  clearClicked = () => {
+    this.clicked = false;
+  };
+
   render() {
     const {
       component: Component,
@@ -33,36 +53,39 @@ export default class Item extends React.Component<ItemProps, *> {
       item,
       selected,
       className,
-      innerRef
+      innerRef,
     } = this.props;
+
+    const listeners = {
+      onClick: onClickHandler,
+      onFocus: this.selectItem,
+      onMouseEnter: this.selectItem,
+      onTouchStart: this.onTouchStart,
+      onTouchEnd: this.onTouchEnd,
+      onTouchMove: this.clearClicked,
+      onTouchCancel: this.clearClicked,
+    };
+
+    if (this.props.renderer) {
+      return this.props.renderer({
+        listeners,
+        className,
+        style,
+        selected,
+        item,
+        ref: innerRef,
+      });
+    }
 
     return (
       <li className={`rta__item ${className || ""}`} style={style}>
         <div
+          {...listeners}
           className={`rta__entity ${
             selected === true ? "rta__entity--selected" : ""
           }`}
           role="button"
           tabIndex={0}
-          onClick={onClickHandler}
-          onFocus={this.selectItem}
-          onMouseEnter={this.selectItem}
-          onTouchStart={() => {
-            this.clicked = true;
-            this.selectItem();
-          }}
-          onTouchEnd={e => {
-            e.preventDefault();
-            if (this.clicked) {
-              onClickHandler(e);
-            }
-          }}
-          onTouchMove={() => {
-            this.clicked = false;
-          }}
-          onTouchCancel={() => {
-            this.clicked = false;
-          }}
           /* $FlowFixMe */
           ref={innerRef}
         >
